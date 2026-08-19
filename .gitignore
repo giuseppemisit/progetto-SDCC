@@ -1,0 +1,28 @@
+# Cartelle bozze e file temporanei della relazione
+relazione/bozze/
+*.docx
+~$*.docx
+
+# File Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+
+# Angular
+gestore-documenti-smart/frontend/node_modules/
+gestore-documenti-smart/frontend/dist/
+gestore-documenti-smart/frontend/.angular/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Sistema
+.DS_Store
+
+# Dati locali dei container
+pgdata/
+minio_data/
