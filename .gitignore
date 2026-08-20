@@ -6,9 +6,20 @@ relazione/bozze/
 # File Python
 __pycache__/
 *.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
 .venv/
 venv/
 .env
+.env.*
+!.env.example
+
+# Test e Coverage Python
+.pytest_cache/
+.coverage
+htmlcov/
 
 # Angular
 gestore-documenti-smart/frontend/node_modules/
@@ -19,10 +30,15 @@ gestore-documenti-smart/frontend/.angular/
 .idea/
 *.iml
 .vscode/
+*.code-workspace
 
-# Sistema
+# Docker
+docker-compose.override.yml
+
+# OS
 .DS_Store
+Thumbs.db
 
-# Dati locali dei container
+# Dati locali
 pgdata/
 minio_data/

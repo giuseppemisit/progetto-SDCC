@@ -1,0 +1,27 @@
+# Framework web
+fastapi==0.115.12
+uvicorn[standard]==0.34.3
+
+# Database
+sqlalchemy==2.0.41
+psycopg2-binary==2.9.10
+pgvector==0.4.2
+alembic==1.16.2
+
+# Object Storage (MinIO / S3)
+boto3==1.39.10
+
+# OCR
+pytesseract==0.3.13
+Pillow==11.3.0
+
+# AI / NLP
+sentence-transformers==5.0.0
+spacy==3.8.7
+keybert==0.8.5
+scikit-learn==1.7.0
+
+# Utility
+python-dotenv==1.1.0
+python-multipart==0.0.20
+pydantic-settings==2.9.1
