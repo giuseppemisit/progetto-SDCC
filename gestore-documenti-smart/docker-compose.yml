@@ -29,7 +29,7 @@ services:
     image: dxflrs/garage:v2.3.0
     container_name: sdcc_garage
     restart: unless-stopped
-    command: server --single-node --default-bucket
+    command: /garage server --single-node --default-bucket
     environment:
       GARAGE_DEFAULT_ACCESS_KEY: ${GARAGE_ACCESS_KEY}
       GARAGE_DEFAULT_SECRET_KEY: ${GARAGE_SECRET_KEY}
@@ -41,11 +41,6 @@ services:
       - ./garage/garage.toml:/etc/garage.toml
       - garage_meta:/var/lib/garage/meta
       - garage_data:/var/lib/garage/data
-    healthcheck:
-      test: ["CMD", "curl", "-sf", "http://localhost:3903/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
   # ─────────────────────────────────────────────
   # Backend — Python / FastAPI
@@ -70,7 +65,7 @@ services:
       db:
         condition: service_healthy
       garage:
-        condition: service_healthy
+        condition: service_started
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 10s

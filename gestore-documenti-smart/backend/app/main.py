@@ -1,14 +1,23 @@
 from fastapi import FastAPI
+from contextlib import asynccontextmanager
+from app.database import engine, Base
+from app.models import documento # Importante per far registrare la tabella
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Crea le tabelle nel DB all'avvio (utile in sviluppo)
+    Base.metadata.create_all(bind=engine)
+    yield
+    # Nessuna azione specifica allo spegnimento
 
 app = FastAPI(
-    title="Gestore Documenti Smart API",
-    description="API per la gestione e l'elaborazione dei documenti comunali",
-    version="1.0.0"
+    title="API Documenti Comunali Cloud",
+    lifespan=lifespan
 )
 
 @app.get("/")
 def read_root():
-    return {"message": "Benvenuto nelle API del Gestore Documenti Smart!"}
+    return {"status": "ok", "message": "Backend avviato e DB connesso!"}
 
 @app.get("/health")
 def health_check():
