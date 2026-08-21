@@ -1,7 +1,8 @@
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from app.database import engine, Base
-from app.models import documento # Importante per far registrare la tabella
+from app.routers import documento_controller
+import app.models  # Importa il package models per registrare tutte le tabelle nel metadata
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -14,6 +15,8 @@ app = FastAPI(
     title="API Documenti Comunali Cloud",
     lifespan=lifespan
 )
+
+app.include_router(documento_controller.router)
 
 @app.get("/")
 def read_root():
