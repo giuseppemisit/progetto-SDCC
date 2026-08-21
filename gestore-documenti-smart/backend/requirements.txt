@@ -8,7 +8,7 @@ psycopg2-binary==2.9.10
 pgvector==0.4.2
 alembic==1.16.2
 
-# Object Storage (MinIO / S3)
+# Object Storage (Garage / S3)
 boto3==1.39.10
 
 # OCR

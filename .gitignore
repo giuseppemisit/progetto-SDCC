@@ -35,10 +35,15 @@ gestore-documenti-smart/frontend/.angular/
 # Docker
 docker-compose.override.yml
 
+# Garage — config con segreto (usa garage.toml.example come template)
+gestore-documenti-smart/garage/garage.toml
+!gestore-documenti-smart/garage/garage.toml.example
+
 # OS
 .DS_Store
 Thumbs.db
 
-# Dati locali
+# Dati locali (se si usano bind mount invece di named volumes)
 pgdata/
-minio_data/
+garage_meta/
+garage_data/
