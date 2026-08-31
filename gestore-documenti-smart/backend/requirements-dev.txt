@@ -1,0 +1,19 @@
+# ==============================================================================
+# REQUIREMENTS-DEV.TXT – Dipendenze solo per sviluppo locale
+# ==============================================================================
+# Test automatici e script manuali.
+# Installare con: pip install -r requirements-dev.txt
+# (richiede che requirements.txt sia già installato)
+-r requirements.txt
+
+# Client HTTP per gli script manuali (tests/manual/...)
+# Non raccolti da pytest: si lanciano a mano con "python -m tests.manual.<nome>"
+requests==2.32.3
+
+# Suite di test automatici (tests/)
+# Avvia Postgres+pgvector e Garage reali via container usa-e-getta
+# (tests/conftest.py) — niente mock. httpx serve al TestClient di FastAPI.
+pytest==9.1.1
+pytest-cov==7.1.0
+testcontainers[postgres]==4.15.0
+httpx==0.28.1

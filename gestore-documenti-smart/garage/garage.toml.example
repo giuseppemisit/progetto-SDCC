@@ -1,20 +1,35 @@
-metadata_dir = "/var/lib/garage/meta"
-data_dir = "/var/lib/garage/data"
+# ==============================================================================
+# TEMPLATE CONFIGURAZIONE GARAGE (S3-compatibile)
+# ==============================================================================
+# File .example: modello per il garage.toml reale
 
+# 1. VOLUMI DATI
+# Percorsi interni (come in docker-compose.yml)
+metadata_dir = "/var/lib/garage/meta"   # Struttura e indici
+data_dir = "/var/lib/garage/data"       # File reali
+
+# 2. NODO SINGOLO
+# replication_factor = 1 → nessun clustering, solo locale
 replication_factor = 1
 
-rpc_bind_addr = "[::]:3901"
-rpc_public_addr = "127.0.0.1:3901"
-rpc_secret = "GENERA_CON: openssl rand -hex 32"
+# 3. COMUNICAZIONE INTERNA (RPC)
+# Necessaria anche a nodo singolo. rpc_secret = password del canale
+rpc_bind_addr = "[::]:3901"             # Porta RPC (Remote Procedure Call)
+rpc_public_addr = "garage:3901"
+rpc_secret = "__GARAGE_RPC_SECRET__"    # Sostituire con: openssl rand -hex 32
 
+# 4. API S3
 [s3_api]
+# Regione fittizia "garage" (richiesta dal protocollo S3)
 s3_region = "garage"
-api_bind_addr = "[::]:3900"
+api_bind_addr = "[::]:3900"             # Porta S3 API
 root_domain = ".s3.garage.localhost"
 
-[s3_web]
-bind_addr = "[::]:3902"
-root_domain = ".web.garage.localhost"
+# 5. SICUREZZA
+# Nessun [s3_web]: le immagini si servono solo via API S3 + presigned URL
+# (garage_service.py). Evita porte inutili e riduce la superficie d'attacco
 
+# 6. ADMIN
 [admin]
+# Porta 3903: accessibile solo internamente (non esposta da Docker)
 api_bind_addr = "[::]:3903"

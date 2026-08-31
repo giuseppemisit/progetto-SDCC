@@ -12,9 +12,9 @@ dist/
 build/
 .venv/
 venv/
-.env
-.env.*
-!.env.example
+gestore-documenti-smart/.env
+gestore-documenti-smart/.env.*
+!gestore-documenti-smart/.env.example
 
 # Test e Coverage Python
 .pytest_cache/

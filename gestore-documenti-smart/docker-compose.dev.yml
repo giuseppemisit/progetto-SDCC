@@ -1,0 +1,27 @@
+# ==============================================================================
+# Overlay di SVILUPPO — Attivazione manuale (di sicurezza)
+# ==============================================================================
+#   Per andare in Produzione: docker compose up -d
+#   Per programmare sul PC:   docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+#
+# LA SCELTA DEL NOME: Docker ha una funzione nascosta per cui se chiamiamo un file
+# "docker-compose.override.yml", lui lo fonde automaticamente senza dirci nulla.
+# Chiamandolo intenzionalmente ".dev.yml", evitiamo che per sbaglio il server di
+# produzione si avvii in "modalità sviluppo". Dobbiamo dirglielo tu esplicitamente con "-f"!
+# ==============================================================================
+
+services:
+  backend:
+    volumes:
+      # (Bind Mount): Collega la cartella del codice del PC direttamente dentro al container.
+      # Quando salviamo il file sul PC, il file cambia all'istante anche dentro il container chiuso.
+      - ./backend/app:/app/app
+      # NOTA BENE: Montiamo SOLO la sottocartella /app. Se montassimo l'intera cartella
+      # /backend, andremmo a "schiacciare" (oscurare) le librerie Python e i modelli di
+      # Intelligenza Artificiale che Docker aveva scaricato durante la build.
+
+    environment:
+      # LIVE RELOAD: Aggiungiamo "--reload" al comando di avvio di FastAPI.
+      # Uvicorn (il server di FastAPI), grazie all'opzione --reload, si accorge
+      # che il file è cambiato e riavvia il codice all'istante.
+      UVICORN_EXTRA_ARGS: --reload

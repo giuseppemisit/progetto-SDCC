@@ -1,97 +1,217 @@
+# ==============================================================================
+# Gestore Documenti Smart — Orchestrazione Docker Engine
+# ==============================================================================
+#
+# ARCHITETTURA (Stack a 4 servizi su reti segmentate):
+# 1. Frontend (Angular/Nginx): Interfaccia utente
+# 2. Backend (FastAPI/Python): Il cuore logico dell'applicazione
+# 3. Database (PostgreSQL): Salva i testi e i dati strutturati
+# 4. Storage (Garage S3): Salva i file fisici (le immagini)
+#
+# PRINCIPI CHIAVE APPLICATI:
+# - Attesa Intelligente (Readiness): Il backend parte SOLO quando DB e Storage sono operativi 100%
+# - Sicurezza a 3 Livelli (Segmentazione):
+#     - 'backend-net' blinda il DB e lo Storage rendendoli invisibili da internet;
+#     - 'frontend-net' gestisce solo il traffico HTTP pubblico.
+# - Scalabilità (Naming flessibile): Evitiamo di fissare i nomi dei container (container_name).
+#   Questo permette a Docker di creare nomi dinamici, evitando conflitti se avviamo più ambienti.
+#
+# COMANDI UTILI PER IL DEBUG (Usa sempre il nome del servizio, non del container):
+# - Guarda i log in tempo reale:    docker compose logs -f backend
+# - Entra nel database:             docker compose exec db psql -U $POSTGRES_USER -d $POSTGRES_DB
+# ==============================================================================
+
+
+# Rotazione dei log: EVITA di salvare infiniti log json-file (massimo 3 file da 10MB)
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
 
   # ─────────────────────────────────────────────
-  # PostgreSQL con estensione pgvector
+  # DB — PostgreSQL con estensione pgvector
   # ─────────────────────────────────────────────
   db:
     image: pgvector/pgvector:pg16
-    container_name: sdcc_db
     restart: unless-stopped
+    logging: *default-logging
+
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
-    ports:
-      - "5432:5432"
+      # RICHIEDE variabili obbligatorie (":?"): Compose abortisce se mancanti
+      POSTGRES_USER: "${POSTGRES_USER:?POSTGRES_USER non impostata: copiare .env.example in .env e valorizzarla}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:?POSTGRES_PASSWORD non impostata: copiare .env.example in .env e valorizzarla}"
+      POSTGRES_DB: "${POSTGRES_DB:?POSTGRES_DB non impostata: copiare .env.example in .env e valorizzarla}"
+
+    networks:
+      # nessuna porta pubblicata sull'host (minimo privilegio)
+      - backend-net
+
     volumes:
+      # Volume in cui Postgres andrà a salvare i dati reali
       - pgdata:/var/lib/postgresql/data
-      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      # ":ro" (Read-Only): Impedisce al container di modificare il nostro file originale sul PC.
+      # IMPORTANTE: Postgres legge ed esegue questo file SOLO al primissimo avvio (quando "pgdata" è vuoto).
+      # Se in futuro verranno aggiunte nuove tabelle in "init.sql", per fargliele creare bisognerà distruggere
+      # il database con `docker compose down -v` (perdendo i dati) oppure fare le modifiche a mano.
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
+      # Verifica che il database sia REALMENTE pronto a ricevere connessioni dall'esterno.
+      # L'opzione "-h 127.0.0.1" evita un "falso positivo": senza di essa, Postgres direbbe
+      # di essere pronto mentre sta ancora creando le tabelle (init.sql), facendo partire
+      # il backend troppo presto e causandone il crash.
+      test: [ "CMD-SHELL", "pg_isready -h 127.0.0.1 -U $$POSTGRES_USER -d $$POSTGRES_DB" ]
+      interval: 10s         # Frequenza del test a regime normale (ogni 10 secondi)
+      timeout: 5s           # Se non risponde entro 5 secondi, il singolo test fallisce
+      retries: 5            # Dopo 5 fallimenti consecutivi, Docker considera il DB rotto
+      start_period: 30s     # Periodo di "grazia" all'avvio (dà tempo di creare le tabelle)
+      start_interval: 2s    # Durante il periodo di grazia fa il test ogni 2s: avvio più veloce.
+
 
   # ─────────────────────────────────────────────
   # Garage — Object Storage S3-compatibile
   # ─────────────────────────────────────────────
   garage:
     image: dxflrs/garage:v2.3.0
-    container_name: sdcc_garage
     restart: unless-stopped
+    logging: *default-logging
+
+    # AUTOCONFIGURAZIONE: --single-node avvia il nodo standalone,
+    # --default-bucket crea bucket e permessi con le chiavi sottostanti
     command: /garage server --single-node --default-bucket
+
     environment:
-      GARAGE_DEFAULT_ACCESS_KEY: ${GARAGE_ACCESS_KEY}
-      GARAGE_DEFAULT_SECRET_KEY: ${GARAGE_SECRET_KEY}
-      GARAGE_DEFAULT_BUCKET: ${S3_BUCKET_NAME}
+      # RICHIEDE variabili obbligatorie: Compose abortisce se mancanti
+      GARAGE_DEFAULT_ACCESS_KEY: "${GARAGE_ACCESS_KEY:?GARAGE_ACCESS_KEY non impostata: vedi .env.example}"
+      GARAGE_DEFAULT_SECRET_KEY: "${GARAGE_SECRET_KEY:?GARAGE_SECRET_KEY non impostata: vedi .env.example}"
+      GARAGE_DEFAULT_BUCKET: "${S3_BUCKET_NAME:?S3_BUCKET_NAME non impostata: vedi .env.example}"
+
+    networks:
+      # ISOLA Garage su rete interna, non raggiungibile dal frontend
+      - backend-net
+
     ports:
-      - "3900:3900"   # API S3
-      - "3903:3903"   # Admin API
+      # PUBBLICA solo l'API S3, per i presigned URL del browser
+      # il browser (Angular) scaricherà le immagini direttamente da qui tramite i "Presigned URL".
+      # (La sintassi ":-3900" usa 3900 di default se la variabile manca nel .env).
+      - "${GARAGE_S3_PORT:-3900}:3900"
+      # SICUREZZA: La porta 3903 (Pannello Admin) NON è esposta qui di proposito.
+      # Gestendo operazioni critiche, resta invisibile all'esterno (PC/browser)
+      # e raggiungibile SOLO dai container interni.
+
     volumes:
-      - ./garage/garage.toml:/etc/garage.toml
-      - garage_meta:/var/lib/garage/meta
-      - garage_data:/var/lib/garage/data
+      # Iniettiamo un nostro file di configurazione extra, in sola lettura (:ro)
+      - ./garage/garage.toml:/etc/garage.toml:ro
+      # Volumi persistenti: i dati sopravvivono al riavvio del container
+      - garage_meta:/var/lib/garage/meta   # Salva la struttura e gli indici interni
+      - garage_data:/var/lib/garage/data   # Salva i file fisici (le immagini vere e proprie)
+
+    healthcheck:
+      # USA "CMD" puro (senza shell) nell'immagine distroless.
+      # VERIFICA readiness reale: `bucket info` è 0 solo a layout e bucket pronti
+      test: [ "CMD", "/garage", "-c", "/etc/garage.toml", "bucket", "info", "${S3_BUCKET_NAME}" ]
+      interval: 10s
+      timeout: 10s
+      retries: 12
+      start_period: 30s
+      start_interval: 2s
+
 
   # ─────────────────────────────────────────────
   # Backend — Python / FastAPI
   # ─────────────────────────────────────────────
   backend:
+    # BUILD da sorgente locale (./backend)
     build:
       context: ./backend
-    container_name: sdcc_backend
+    image: gestore-documenti-smart-backend:latest
     restart: unless-stopped
+    logging: *default-logging
+
     environment:
-      DATABASE_URL: ${DATABASE_URL}
-      S3_ENDPOINT: ${S3_ENDPOINT}
-      S3_ACCESS_KEY: ${S3_ACCESS_KEY}
-      S3_SECRET_KEY: ${S3_SECRET_KEY}
-      S3_BUCKET_NAME: ${S3_BUCKET_NAME}
+      # Passiamo le credenziali e gli indirizzi necessari al backend.
+      DATABASE_URL: "${DATABASE_URL:?DATABASE_URL non impostata: vedi .env.example}"
+      S3_ENDPOINT: "${S3_ENDPOINT:?S3_ENDPOINT non impostata: vedi .env.example}"
+      S3_ACCESS_KEY: "${S3_ACCESS_KEY:?S3_ACCESS_KEY non impostata: vedi .env.example}"
+      S3_SECRET_KEY: "${S3_SECRET_KEY:?S3_SECRET_KEY non impostata: vedi .env.example}"
+      S3_BUCKET_NAME: "${S3_BUCKET_NAME:?S3_BUCKET_NAME non impostata: vedi .env.example}"
+
+      # Endpoint opzionale per Presigned URL lato browser per scaricare le foto; vuoto in produzione
       S3_PUBLIC_ENDPOINT: ${S3_PUBLIC_ENDPOINT:-}
-      MODEL_NAME: ${MODEL_NAME}
+      # Modello di Intelligenza Artificiale che FastAPI dovrà scaricare da HuggingFace
+      MODEL_NAME: ${MODEL_NAME:-sentence-transformers/all-MiniLM-L6-v2}
+      # Argomenti extra per Uvicorn (il "Tomcat" di Python), utile per il live-reload in fase di sviluppo
+      UVICORN_EXTRA_ARGS: ${UVICORN_EXTRA_ARGS:-}
+
     ports:
-      - "8000:8000"
-    volumes:
-      - ./backend:/app   # hot-reload in sviluppo
+      # ESPONIAMO LA PORTA 8000: È la porta classica di FastAPI (come la 8080 di Spring).
+      - "${BACKEND_PORT:-8000}:8000"
+
+    networks:
+      # Il backend è l'unico servizio ad avere un piede in entrambe le reti
+      - backend-net    # Per parlare con Database e Storage
+      - frontend-net   # Per ricevere le chiamate HTTP dal Frontend (Angular/Nginx)
+
     depends_on:
+      # ATTENDE db e garage sani prima di avviare: evita errori legati al ciclo di vita delle connessioni
       db:
         condition: service_healthy
       garage:
-        condition: service_started
+        condition: service_healthy
+
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 10s
+      # Usa 127.0.0.1 (non "localhost") per evitare problemi se il
+      # sistema tenta di usare la rete IPv6: uvicorn ascolta solo su IPv4
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3).status == 200 else 1)"]
+      interval: 15s
       timeout: 5s
       retries: 5
-      start_period: 30s
+      # 90s perché al primo avvio il lifespan carica in memoria SentenceTransformer e spaCy
+      start_period: 90s
+      start_interval: 5s
+
 
   # ─────────────────────────────────────────────
   # Frontend — Angular compilato + Nginx
   # ─────────────────────────────────────────────
   frontend:
+    # BUILD da sorgente locale (./frontend)
     build:
       context: ./frontend
-    container_name: sdcc_frontend
     restart: unless-stopped
+    logging: *default-logging
+
+    networks:
+      # ISOLATO su frontend-net: non raggiunge db né garage
+      - frontend-net
     ports:
-      - "80:80"
+      # Porta Standard per la navigazione web su internet (HTTP)
+      - "${FRONTEND_PORT:-80}:80"     # http://localhost di default
+
+    # ATTENDE il backend sano prima di servire il frontend
     depends_on:
       backend:
         condition: service_healthy
 
+
 # ─────────────────────────────────────────────
-# Volumi named (dati persistenti)
+# Reti (segmentazione del traffico - 3-Tier Architecture)
+# ─────────────────────────────────────────────
+networks:
+  # Rete Privata - isolata dal mondo esterno (Dati sensibili): db, garage, backend
+  backend-net:
+    driver: bridge
+  # Rete Pubblica - Traffico HTTP applicativo: frontend e backend
+  frontend-net:
+    driver: bridge
+
+# ─────────────────────────────────────────────
+# Volumi named (I dischi fissi virtuali per i dati persistenti)
 # ─────────────────────────────────────────────
 volumes:
-  pgdata:
-  garage_meta:
-  garage_data:
+  pgdata:        # Salva le tabelle e i dati del database PostgreSQL
+  garage_meta:   # Metadati Garage (indici, layout, chiavi)
+  garage_data:   # Blocchi dati Garage (immagini dei documenti)
