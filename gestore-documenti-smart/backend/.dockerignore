@@ -1,9 +1,36 @@
+# ─── Ambienti virtuali Python ─────────────────────────────────
+# Le dipendenze vengono installate nell'immagine da requirements.txt:
+# copiare il venv locale romperebbe i path e gonfierebbe l'immagine.
 .venv/
+venv/
+env/
+
+# ─── Bytecode e cache Python ──────────────────────────────────
 __pycache__/
 *.pyc
 *.pyo
-.pytest_cache/
-.env
+*.egg-info/
+
+# ─── Test e strumenti di sviluppo ─────────────────────────────
+# Non necessari all'esecuzione in produzione.
 tests/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ─── Controllo versione e metadati ────────────────────────────
+# .git può pesare più del codice stesso: escluderlo velocizza
+# sensibilmente l'invio del contesto di build al daemon Docker.
+.git/
+.gitignore
+.dockerignore
+*.md
+
+# ─── Configurazione locale e segreti ──────────────────────────
+.env
+*.db
+*.sqlite3
+
+# ─── File di sistema ──────────────────────────────────────────
 .DS_Store
 **/.DS_Store

@@ -17,6 +17,7 @@ gestore-documenti-smart/.env.*
 !gestore-documenti-smart/.env.example
 
 # Test e Coverage Python
+gestore-documenti-smart/backend/tests/
 .pytest_cache/
 .coverage
 htmlcov/
