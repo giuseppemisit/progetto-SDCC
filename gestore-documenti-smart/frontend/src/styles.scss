@@ -1,1 +1,281 @@
-/* You can add global styles to this file, and also import other style files */
+/* ==========================================================================
+   Gestore Documenti Comunali — Design system globale
+   ========================================================================== */
+
+:root {
+  /* ─── PALETTE ─────────────────────────────────────────────────────────────── */
+  /* Centralizza i colori per garantire coerenza visiva e semplificare la manutenzione dell'interfaccia */
+
+  --color-primary-900: #06213d;
+  --color-primary-800: #0b3a63;
+  --color-primary-700: #114a7d;
+  --color-primary-600: #175c98;
+  --color-primary-500: #2472b8;
+  --color-primary-100: #e5eef7;
+  --color-primary-50:  #f2f7fb;
+
+  --color-white: #ffffff;
+  --color-gray-50:  #f7f8fa;
+  --color-gray-100: #eef1f4;
+  --color-gray-200: #e1e6eb;
+  --color-gray-300: #c9d1d9;
+  --color-gray-400: #9aa7b4;
+  --color-gray-500: #6c7a89;
+  --color-gray-600: #4b5a68;
+  --color-gray-700: #34404d;
+  --color-gray-800: #202b36;
+  --color-gray-900: #121a22;
+
+  /* Colori semantici per distinguere stati e messaggi dell'interfaccia */
+  --color-success: #146c43;
+  --color-success-bg: #e6f4ec;
+  --color-warning: #92580a;
+  --color-warning-bg: #fbf1de;
+  --color-danger: #a32620;
+  --color-danger-bg: #fbeae9;
+  --color-info: var(--color-primary-700);
+  --color-info-bg: var(--color-primary-50);
+
+  /* ─── TIPOGRAFIA E LAYOUT ─────────────────────────────────────────────────── */
+  --font-sans: "Titillium Web", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+
+  /* Scala di spaziatura uniforme per mantenere coerenza tra i componenti */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+
+  /* Raggi contenuti */
+  --radius-xs: 3px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+
+  /*  Ombre  */
+  --shadow-xs: 0 1px 2px rgba(18, 26, 34, 0.06);
+  --shadow-sm: 0 1px 3px rgba(18, 26, 34, 0.08), 0 1px 2px rgba(18, 26, 34, 0.04);
+  --shadow-md: 0 4px 16px rgba(18, 26, 34, 0.10);
+  --shadow-lg: 0 16px 48px rgba(11, 20, 30, 0.22);
+
+  /*  Layout  */
+  --sidebar-width: 264px;
+  --topbar-height: 64px;
+  --content-max-width: 1440px;
+
+  /*  Transizioni  */
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --dur-fast: 120ms;
+  --dur-base: 180ms;
+}
+
+
+/* ─── RESET E ACCESSIBILITÀ ─────────────────────────────────────────────────── */
+/* Uniforma il comportamento predefinito degli elementi per avere una base
+   coerente tra browser e garantire un layout prevedibile */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--color-gray-800);
+  background: var(--color-gray-50);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3, h4, h5, h6 { margin: 0; font-weight: 600; color: var(--color-gray-900); }
+p { margin: 0; }
+ul, ol { margin: 0; padding: 0; list-style: none; }
+a { color: inherit; text-decoration: none; }
+button { font-family: inherit; cursor: pointer; }
+input, select, textarea { font-family: inherit; font-size: inherit; color: inherit; }
+img { max-width: 100%; display: block; }
+
+//* Mantiene sempre visibile il focus da tastiera */
+:focus-visible {
+  outline: 2px solid var(--color-primary-600);
+  outline-offset: 2px;
+  border-radius: var(--radius-xs);
+}
+
+/* ─── SCROLLBAR ─────────────────────────────────────────────────────────────── */
+/* Personalizza la scrollbar mantenendo dimensioni ridotte */
+
+* { scrollbar-width: thin; scrollbar-color: var(--color-gray-300) transparent; }
+*::-webkit-scrollbar { width: 8px; height: 8px; }
+*::-webkit-scrollbar-thumb { background: var(--color-gray-300); border-radius: 8px; }
+*::-webkit-scrollbar-thumb:hover { background: var(--color-gray-400); }
+
+/* ─── PRIMITIVE RIUTILIZZABILI ─────────────────────────────────────────────── */
+/* Classi condivise per uniformare pulsanti, campi, card e indicatori di stato */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  height: 40px;
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  transition: background var(--dur-fast) var(--ease-standard),
+              border-color var(--dur-fast) var(--ease-standard),
+              box-shadow var(--dur-fast) var(--ease-standard);
+}
+
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn--primary {
+  background: var(--color-primary-800);
+  color: var(--color-white);
+}
+.btn--primary:hover:not(:disabled) { background: var(--color-primary-700); }
+.btn--primary:active:not(:disabled) { background: var(--color-primary-900); }
+
+.btn--secondary {
+  background: var(--color-white);
+  border-color: var(--color-gray-300);
+  color: var(--color-gray-700);
+}
+.btn--secondary:hover:not(:disabled) { background: var(--color-gray-50); border-color: var(--color-gray-400); }
+
+.btn--ghost {
+  background: transparent;
+  color: var(--color-gray-600);
+}
+.btn--ghost:hover:not(:disabled) { background: var(--color-gray-100); color: var(--color-gray-800); }
+
+.btn--danger {
+  background: var(--color-white);
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
+.btn--danger:hover:not(:disabled) { background: var(--color-danger-bg); }
+
+.btn--sm { height: 32px; padding: 0 var(--space-3); font-size: 0.8125rem; }
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.field__label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-gray-700);
+}
+
+.field__label .optional {
+  font-weight: 400;
+  color: var(--color-gray-400);
+  margin-left: var(--space-1);
+}
+
+.field__hint { font-size: 0.75rem; color: var(--color-gray-500); }
+.field__error { font-size: 0.75rem; color: var(--color-danger); font-weight: 600; }
+
+.input, .select, .textarea {
+  width: 100%;
+  border: 1px solid var(--color-gray-300);
+  border-radius: var(--radius-sm);
+  background: var(--color-white);
+  padding: 0 var(--space-3);
+  height: 42px;
+  color: var(--color-gray-900);
+  transition: border-color var(--dur-fast) var(--ease-standard), box-shadow var(--dur-fast) var(--ease-standard);
+}
+
+.textarea { height: auto; padding: var(--space-3); resize: vertical; min-height: 96px; }
+
+.input:hover, .select:hover, .textarea:hover { border-color: var(--color-gray-400); }
+
+.input:focus, .select:focus, .textarea:focus {
+  outline: none;
+  border-color: var(--color-primary-600);
+  box-shadow: 0 0 0 3px var(--color-primary-100);
+}
+
+.input.is-invalid, .select.is-invalid, .textarea.is-invalid {
+  border-color: var(--color-danger);
+}
+.input.is-invalid:focus, .textarea.is-invalid:focus {
+  box-shadow: 0 0 0 3px var(--color-danger-bg);
+}
+
+.card {
+  background: var(--color-white);
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xs);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-xs);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  line-height: 1.6;
+}
+.badge--success { background: var(--color-success-bg); color: var(--color-success); }
+.badge--warning { background: var(--color-warning-bg); color: var(--color-warning); }
+.badge--danger  { background: var(--color-danger-bg); color: var(--color-danger); }
+.badge--info    { background: var(--color-info-bg); color: var(--color-info); }
+.badge--neutral { background: var(--color-gray-100); color: var(--color-gray-600); }
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  height: 32px;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-gray-300);
+  background: var(--color-white);
+  color: var(--color-gray-600);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  transition: all var(--dur-fast) var(--ease-standard);
+}
+.chip:hover { border-color: var(--color-gray-400); }
+.chip.is-active {
+  background: var(--color-primary-800);
+  border-color: var(--color-primary-800);
+  color: var(--color-white);
+}
+
+/* Nasconde visivamente gli elementi mantenendoli disponibili agli screen reader */
+.visually-hidden {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

@@ -1,29 +1,35 @@
 import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
+
 import { AppComponent } from './app.component';
 
 describe('AppComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [AppComponent],
+      providers: [provideRouter([])],
     }).compileComponents();
   });
 
-  it('should create the app', () => {
+  it('si istanzia correttamente', () => {
     const fixture = TestBed.createComponent(AppComponent);
-    const app = fixture.componentInstance;
-    expect(app).toBeTruthy();
+    expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it(`should have the 'gestore-documenti-smart-frontend' title`, () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    const app = fixture.componentInstance;
-    expect(app.title).toEqual('gestore-documenti-smart-frontend');
+  it('parte con la navigazione mobile chiusa e la apre/chiude a comando', () => {
+    const app = TestBed.createComponent(AppComponent).componentInstance;
+
+    expect(app.mobileNavOpen()).toBeFalse();
+    app.toggleMobileNav();
+    expect(app.mobileNavOpen()).toBeTrue();
+    app.closeMobileNav();
+    expect(app.mobileNavOpen()).toBeFalse();
   });
 
-  it('should render title', () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    fixture.detectChanges();
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, gestore-documenti-smart-frontend');
+  // Verifica i valori di fallback quando la rotta non fornisce metadati
+  it('espone sempre heading e sezione per la topbar, anche senza dati di rotta', () => {
+    const app = TestBed.createComponent(AppComponent).componentInstance;
+
+    expect(app.datiRotta()).toEqual({ heading: '', sezione: '' });
   });
 });
