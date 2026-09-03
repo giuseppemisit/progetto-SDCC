@@ -1,1 +1,133 @@
-<p>navbar works!</p>
+<!--
+  ============================================================================
+  src/app/components/navbar/navbar.component.html — Template della Sidebar
+  ============================================================================
+-->
+
+<aside class="sidebar" [class.is-open]="mobileOpen()">
+  <div class="sidebar__header">
+    <div class="sidebar__crest" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M12 2.5 20.5 6v6c0 5.2-3.6 8.8-8.5 9.5C7.1 20.8 3.5 17.2 3.5 12V6L12 2.5Z"
+              stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" />
+        <path d="M8.5 12.2 11 14.7l4.5-5.4" stroke="currentColor" stroke-width="1.5"
+              stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
+    </div>
+
+    <div class="sidebar__title">
+      <span class="sidebar__app">Gestore Documenti</span>
+      <span class="sidebar__ente">Area Protocollo &amp; Archivio</span>
+    </div>
+
+    <button type="button" class="sidebar__close" (click)="closeMobile.emit()" aria-label="Chiudi menu">
+      <svg viewBox="0 0 20 20" fill="none"><path d="M5 5l10 10M15 5 5 15" stroke="currentColor"
+        stroke-width="1.6" stroke-linecap="round" /></svg>
+    </button>
+  </div>
+
+  <nav class="sidebar__nav" aria-label="Navigazione principale">
+    <div class="sidebar__section">
+      <span class="sidebar__section-label">Consultazione</span>
+
+      <ul>
+        @for (voce of vociConsultazione; track voce.percorso) {
+          <li>
+            <a [routerLink]="voce.percorso" routerLinkActive="is-active"
+               [routerLinkActiveOptions]="{ exact: !!voce.esatto }" (click)="onLinkClick()">
+
+              <span class="sidebar__icon" aria-hidden="true">
+                @switch (voce.icona) {
+                  @case ('panoramica') {
+                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round">
+                      <rect x="2.2" y="2.2" width="6.8" height="6.8" rx="1.4" />
+                      <rect x="11" y="2.2" width="6.8" height="6.8" rx="1.4" />
+                      <rect x="2.2" y="11" width="6.8" height="6.8" rx="1.4" />
+                      <rect x="11" y="11" width="6.8" height="6.8" rx="1.4" />
+                    </svg>
+                  }
+
+                  @case ('archivio') {
+                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round">
+                      <rect x="2.5" y="5.5" width="15" height="11.5" rx="1.4" />
+                      <path d="M2.5 9h15" />
+                      <path d="M8 12h4" />
+                      <path d="M6.2 5.5V4.3A1.6 1.6 0 0 1 7.8 2.7h4.4a1.6 1.6 0 0 1 1.6 1.6v1.2" />
+                    </svg>
+                  }
+
+                  @case ('ricerca') {
+                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+                      <circle cx="8.6" cy="8.6" r="5.4" />
+                      <path d="M16.3 16.3l-3.9-3.9" />
+                    </svg>
+                  }
+                }
+              </span>
+
+              <span class="sidebar__label">{{ voce.etichetta }}</span>
+            </a>
+          </li>
+        }
+      </ul>
+    </div>
+
+    <div class="sidebar__section">
+      <span class="sidebar__section-label">Acquisizione</span>
+
+      <ul>
+        @for (voce of vociAcquisizione; track voce.percorso) {
+          <li>
+            <a [routerLink]="voce.percorso" routerLinkActive="is-active" (click)="onLinkClick()">
+
+              <span class="sidebar__icon" aria-hidden="true">
+                @switch (voce.icona) {
+                  @case ('nuovo') {
+                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round">
+                      <path d="M6.3 2.7h5.1l3.3 3.3v10.3a1 1 0 0 1-1 1H6.3a1 1 0 0 1-1-1V3.7a1 1 0 0 1 1-1Z" />
+                      <path d="M11.4 2.7v3.6H15" />
+                      <path d="M7.8 12h4.4M10 9.8v4.4" />
+                    </svg>
+                  }
+
+                  @case ('massivo') {
+                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M10 3v8.6" />
+                      <path d="M6.8 6.2 10 3l3.2 3.2" />
+                      <path d="M3.5 13.2v2.1A1.7 1.7 0 0 0 5.2 17h9.6a1.7 1.7 0 0 0 1.7-1.7v-2.1" />
+                    </svg>
+                  }
+                }
+              </span>
+
+              <span class="sidebar__label">{{ voce.etichetta }}</span>
+            </a>
+          </li>
+        }
+      </ul>
+    </div>
+  </nav>
+
+  <div class="sidebar__footer">
+    <div class="sidebar__operator">
+      <span class="sidebar__avatar">OP</span>
+
+      <div class="sidebar__operator-info">
+        <span class="sidebar__operator-name">Operatore Protocollo</span>
+        <span class="sidebar__operator-role">Ufficio Archivio Digitale</span>
+      </div>
+    </div>
+
+    <span class="sidebar__version">v1.0 · ambiente demo</span>
+  </div>
+</aside>
+
+<!-- Oscura il contenuto sottostante quando la sidebar mobile è aperta -->
+<button
+  type="button"
+  class="sidebar__backdrop"
+  [class.is-visible]="mobileOpen()"
+  (click)="closeMobile.emit()"
+  aria-label="Chiudi menu"
+  tabindex="-1">
+</button>

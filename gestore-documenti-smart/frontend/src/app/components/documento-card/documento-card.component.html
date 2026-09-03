@@ -1,0 +1,44 @@
+<!--
+  ============================================================================
+  src/app/components/documento-card/documento-card.component.html — Card Documento
+  ============================================================================
+-->
+
+<a class="doc-card" [routerLink]="['/documenti', documento().id]">
+  <div class="doc-card__preview" [class]="tono()">
+    <span class="doc-card__iniziali">{{ iniziali() }}</span>
+
+    @if (percentualeRilevanza() !== null) {
+      <span class="doc-card__score">{{ percentualeRilevanza() }}%</span>
+    }
+  </div>
+
+  <div class="doc-card__body">
+    <h3 class="doc-card__nome">{{ documento().nome }}</h3>
+
+    <div class="doc-card__meta">
+      @if (documento().tipologia) {
+        <span class="badge badge--info">{{ documento().tipologia }}</span>
+      }
+      <span class="badge" [class]="statoInfo().classe">{{ statoInfo().etichetta }}</span>
+    </div>
+
+    <div class="doc-card__dettagli">
+      @if (documento().ufficio) {
+        <span class="doc-card__riga">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path
+            d="M2.5 6.5 8 2l5.5 4.5V13a.8.8 0 0 1-.8.8H3.3a.8.8 0 0 1-.8-.8V6.5Z" /></svg>
+          {{ documento().ufficio }}
+        </span>
+      }
+
+      @if (documento().data_documento) {
+        <span class="doc-card__riga">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2.2" y="3"
+            width="11.6" height="10.5" rx="1.2" /><path d="M2.2 6.2h11.6M5.3 2v2.4M10.7 2v2.4" /></svg>
+          {{ documento().data_documento }}
+        </span>
+      }
+    </div>
+  </div>
+</a>

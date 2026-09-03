@@ -1,1 +1,161 @@
-<p>documento-dettaglio works!</p>
+<!--
+  ============================================================================
+  src/app/components/documento-dettaglio/documento-dettaglio.component.html — Dettaglio Documento
+  ============================================================================
+-->
+@if (caricamento()) {
+  <div class="detail-skeleton">Caricamento documento…</div>
+} @else if (erroreCaricamento() && !documento()) {
+  <div class="alert alert--danger">{{ erroreCaricamento() }}</div>
+  <a routerLink="/documenti" class="btn btn--secondary" style="margin-top: 16px;">Torna all'archivio</a>
+} @else if (documento()) { @if (documento(); as d) {
+  <div class="detail">
+    <a routerLink="/documenti" class="detail__back">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path
+        d="M10 3.5 4.5 8l5.5 4.5" /></svg>
+      Torna all'archivio
+    </a>
+
+    @if (erroreCaricamento()) {
+      <div class="alert alert--danger">{{ erroreCaricamento() }}</div>
+    }
+
+    <div class="detail__grid">
+      <!-- Colonna immagine -->
+      <div class="detail__col-img">
+        <div class="detail__img-frame card">
+          @if (urlImmagine()) {
+            <!-- Gestisce il caso in cui l'oggetto associato all'URL firmato non sia più disponibile nello storage -->
+            <img [src]="urlImmagine()" alt="Immagine del documento {{ d.nome }}"
+                 (error)="onImmagineNonCaricata()" />
+          } @else {
+            <div class="detail__img-placeholder">
+              <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.3"><path
+                d="M9 4.5h9.6l6.4 6.4V26a1.6 1.6 0 0 1-1.6 1.6H9A1.6 1.6 0 0 1 7.4 26V6.1A1.6 1.6 0 0 1 9 4.5Z" /><path
+                d="M18.6 4.5v6.4H25" /></svg>
+              <span>{{ immagineNonDisponibile() ? 'Immagine non più disponibile sullo storage' : 'Nessuna immagine associata' }}</span>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Colonna metadati -->
+      <div class="detail__col-info">
+        <div class="detail__header">
+          <div class="detail__badges">
+            @if (d.tipologia) { <span class="badge badge--info">{{ d.tipologia }}</span> }
+            <span class="badge" [class]="statoInfo().classe">{{ statoInfo().etichettaEstesa }}</span>
+          </div>
+          @if (elaborazioneInCorso()) {
+            <p class="detail__elaborazione" role="status" aria-live="polite">
+              Estrazione del testo dall'immagine in corso: la scheda si aggiornerà automaticamente
+              non appena OCR, keyword e indicizzazione semantica saranno completati.
+            </p>
+          }
+          @if (statoInfo().stato === 'senza_scansione') {
+            <!-- Distingue l'assenza della scansione da un errore nell'elaborazione OCR -->
+            <p class="detail__senza-scansione">
+              A questa scheda non è associata l'immagine della prima pagina: non essendoci nulla da
+              riconoscere, non sono disponibili testo OCR né keyword estratte automaticamente.
+              <a [routerLink]="['/documenti', d.id, 'modifica']">Carica una scansione</a> per avviare
+              l'elaborazione.
+            </p>
+          }
+          <h1 class="detail__titolo">{{ d.nome }}</h1>
+        </div>
+
+        <dl class="detail__meta">
+          @if (d.ufficio) {
+            <div class="detail__meta-item"><dt>Ufficio competente</dt><dd>{{ d.ufficio }}</dd></div>
+          }
+          @if (d.data_documento) {
+            <div class="detail__meta-item"><dt>Data documento</dt><dd>{{ d.data_documento }}</dd></div>
+          }
+          @if (d.firmatari) {
+            <div class="detail__meta-item"><dt>Firmatari</dt><dd>{{ d.firmatari }}</dd></div>
+          }
+          <div class="detail__meta-item"><dt>Inserito il</dt><dd>{{ d.creato_il | date: 'dd/MM/yyyy HH:mm' }}</dd></div>
+        </dl>
+
+        @if (d.descrizione) {
+          <div class="detail__blocco">
+            <h3>Descrizione</h3>
+            <p>{{ d.descrizione }}</p>
+          </div>
+        }
+
+        @if (keywordsList.length > 0) {
+          <div class="detail__blocco">
+            <h3>Keyword estratte</h3>
+            <div class="detail__keywords">
+              @for (k of keywordsList; track k) { <span class="chip">{{ k }}</span> }
+            </div>
+          </div>
+        }
+
+        @if (d.testo_ocr) {
+          <div class="detail__blocco">
+            <button type="button" class="detail__toggle" (click)="testoOcrEspanso.set(!testoOcrEspanso())">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" [style.transform]="testoOcrEspanso() ? 'rotate(90deg)' : 'none'"><path
+                d="M6 3.5 10.5 8 6 12.5" /></svg>
+              Testo estratto dall'OCR
+            </button>
+            @if (testoOcrEspanso()) {
+              <p class="detail__ocr">{{ d.testo_ocr }}</p>
+            }
+          </div>
+        }
+
+        <div class="detail__actions">
+          <a [routerLink]="['/documenti', d.id, 'modifica']" class="btn btn--secondary">Modifica documento</a>
+          <button type="button" class="btn btn--danger" (click)="apriModaleEliminazione()">Elimina</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sezione AI -->
+    <section class="ai-section">
+      <div class="ai-section__header">
+        <span class="ai-section__badge">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path
+            d="M8 1.8 9.6 6l4.2 1.6L9.6 9.2 8 13.4 6.4 9.2 2.2 7.6 6.4 6 8 1.8Z" /></svg>
+          Suggerimenti Intelligenza Artificiale
+        </span>
+        <p>
+          Documenti semanticamente affini a "{{ d.nome }}", individuati confrontando l'embedding NLP di
+          questo documento con quello dell'intero archivio.
+        </p>
+      </div>
+
+      @if (caricamentoSuggerimenti()) {
+        <p class="ai-section__stato">Analisi delle affinità semantiche in corso…</p>
+      } @else if (suggerimenti().length === 0) {
+        <p class="ai-section__stato">Nessun documento sufficientemente affine è stato individuato in archivio.</p>
+      } @else {
+        <div class="results-grid">
+          @for (s of suggerimenti(); track s.documento.id) {
+            <app-documento-card [documento]="s.documento" [score]="s.score" />
+          }
+        </div>
+      }
+    </section>
+
+    @if (modaleEliminazioneAperto()) {
+      <div class="modal-backdrop" (click)="chiudiModaleEliminazione()">
+        <div class="modal" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+          <h3>Eliminare questo documento?</h3>
+          <p>
+            Il documento "<strong>{{ d.nome }}</strong>" e l'eventuale immagine associata verranno rimossi in
+            modo permanente dall'archivio. L'operazione non è reversibile.
+          </p>
+          <div class="modal__actions">
+            <button type="button" class="btn btn--ghost" (click)="chiudiModaleEliminazione()">Annulla</button>
+            <button type="button" class="btn btn--danger" (click)="confermaEliminazione()" [disabled]="eliminazioneInCorso()">
+              {{ eliminazioneInCorso() ? 'Eliminazione…' : 'Elimina definitivamente' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+} }

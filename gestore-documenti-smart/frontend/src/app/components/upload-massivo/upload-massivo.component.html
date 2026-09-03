@@ -1,1 +1,142 @@
-<p>upload-massivo works!</p>
+<!--
+  ============================================================================
+  src/app/components/upload-massivo/upload-massivo.component.html — Caricamento Massivo
+  ============================================================================
+-->
+
+<div class="bulk">
+  <div class="bulk__intro">
+    <h3>Caricamento massivo da file</h3>
+    <p>
+      Importa più documenti in un'unica operazione a partire da un file <strong>.csv</strong> o
+      <strong>.json</strong>. Ogni riga valida genera un documento in archivio, completo di embedding
+      semantico; le righe non valide vengono segnalate senza interrompere l'elaborazione delle altre.
+    </p>
+  </div>
+
+  <!-- Riepilogo del formato accettato: chiuso di default -->
+  <details class="formato">
+    <summary class="formato__toggle">Formato dei file accettati ed esempi</summary>
+
+    <div class="formato__corpo">
+      <table class="table">
+        <thead>
+          <tr><th style="width: 150px">Campo</th><th style="width: 110px">Obbligatorio</th><th>Note</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>nome</td><td>Sì</td><td>Massimo 255 caratteri</td></tr>
+          <tr><td>descrizione</td><td>No</td><td>Testo libero</td></tr>
+          <tr><td>tipologia</td><td>No</td><td>Massimo 100 caratteri</td></tr>
+          <tr><td>data_documento</td><td>No</td><td>Formato ISO <code>AAAA-MM-GG</code></td></tr>
+          <tr><td>ufficio</td><td>No</td><td>Massimo 200 caratteri</td></tr>
+          <tr><td>firmatari</td><td>No</td><td>Testo libero, più nomi separati da <code>;</code></td></tr>
+        </tbody>
+      </table>
+
+      <div class="formato__esempio">
+        <h5>Esempio file .csv</h5>
+        <pre class="formato__codice">{{ esempioCsv }}</pre>
+      </div>
+
+      <div class="formato__esempio">
+        <h5>Esempio file .json</h5>
+        <pre class="formato__codice">{{ esempioJson }}</pre>
+      </div>
+
+      <ul class="formato__note">
+        <li>Il CSV deve avere la riga di intestazione con i nomi dei campi; il separatore è la virgola e i valori che contengono virgole vanno racchiusi tra virgolette.</li>
+        <li>Il JSON deve contenere un <strong>array</strong> di oggetti, anche nel caso di un solo documento.</li>
+        <li>Entrambi i file devono essere codificati in UTF-8.</li>
+        <li>Le colonne o le chiavi non riconosciute vengono ignorate; i campi lasciati vuoti sono importati come valore assente.</li>
+      </ul>
+    </div>
+  </details>
+
+  @if (!fileSelezionato()) {
+    <div class="dropzone dropzone--compact" (drop)="onDrop($event)" (dragover)="onDragOver($event)">
+      <label class="dropzone__empty" for="file-massivo">
+        <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M16 5v15" /><path d="M10 11l6-6 6 6" />
+          <path d="M6 22v3a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-3" />
+        </svg>
+        <span class="dropzone__titolo">Trascina qui il file .csv o .json</span>
+        <span class="dropzone__sottotitolo">oppure clicca per selezionarlo — dimensione massima 5 MB</span>
+      </label>
+      <input id="file-massivo" class="visually-hidden" type="file" accept=".csv,.json"
+             (change)="onFileSelezionato($event)" />
+    </div>
+    @if (erroreFile()) {
+      <span class="field__error">{{ erroreFile() }}</span>
+    }
+  } @else {
+    <div class="bulk__file card">
+      <div class="bulk__file-icon">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path
+          d="M5.5 2.5h6l3 3v11a1 1 0 0 1-1 1h-8a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1Z" /></svg>
+      </div>
+      <div class="bulk__file-info">
+        <span class="bulk__file-nome">{{ fileSelezionato()!.name }}</span>
+        <span class="bulk__file-dim">{{ formatoDimensione(fileSelezionato()!.size) }}</span>
+      </div>
+      @if (!caricamentoInCorso() && !risultato()) {
+        <button type="button" class="btn btn--ghost btn--sm" (click)="rimuoviFile()">Rimuovi</button>
+      }
+    </div>
+
+    @if (caricamentoInCorso()) {
+      <div class="progress">
+        <div class="progress__track">
+          <div class="progress__fill" [style.width.%]="percentualeAvanzamento()"></div>
+        </div>
+        <span class="progress__label">Caricamento in corso… {{ percentualeAvanzamento() }}%</span>
+      </div>
+    }
+
+    @if (erroreCaricamento()) {
+      <div class="alert alert--danger" role="alert">{{ erroreCaricamento() }}</div>
+    }
+
+    @if (!risultato() && !caricamentoInCorso()) {
+      <div class="bulk__actions">
+        <button type="button" class="btn btn--primary" (click)="avviaCaricamento()">Avvia caricamento</button>
+      </div>
+    }
+  }
+
+  @if (risultato(); as r) {
+    <div class="bulk__summary">
+      <div class="summary-card">
+        <span class="summary-card__valore">{{ r.totale_righe }}</span>
+        <span class="summary-card__label">Righe elaborate</span>
+      </div>
+      <div class="summary-card summary-card--success">
+        <span class="summary-card__valore">{{ r.successi }}</span>
+        <span class="summary-card__label">Documenti creati</span>
+      </div>
+      <div class="summary-card summary-card--danger">
+        <span class="summary-card__valore">{{ r.falliti }}</span>
+        <span class="summary-card__label">Righe non valide</span>
+      </div>
+    </div>
+
+    @if (r.errori.length > 0) {
+      <div class="bulk__errori">
+        <h4>Dettaglio errori di validazione</h4>
+        <table class="table">
+          <thead>
+            <tr><th style="width: 90px">Riga</th><th>Errore</th></tr>
+          </thead>
+          <tbody>
+            @for (e of r.errori; track e.riga) {
+              <tr><td>{{ e.riga }}</td><td>{{ e.errore }}</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    <div class="bulk__actions">
+      <button type="button" class="btn btn--secondary" (click)="rimuoviFile()">Carica un altro file</button>
+    </div>
+  }
+</div>

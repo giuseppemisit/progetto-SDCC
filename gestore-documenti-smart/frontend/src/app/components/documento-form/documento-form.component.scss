@@ -1,0 +1,144 @@
+// ==============================================================================
+// src/app/components/documento-form/documento-form.component.scss — Stili Form Documento
+// ==============================================================================
+
+.form-skeleton {
+  padding: var(--space-10);
+  text-align: center;
+  color: var(--color-gray-500);
+  font-size: 0.875rem;
+}
+
+.doc-form { display: flex; flex-direction: column; gap: var(--space-6); }
+
+.alert {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-sm);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+.alert--danger { background: var(--color-danger-bg); color: var(--color-danger); }
+.alert--success { background: var(--color-success-bg); color: var(--color-success); }
+
+.doc-form__grid {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: var(--space-8);
+}
+
+.doc-form__col { display: flex; flex-direction: column; gap: var(--space-4); }
+
+.doc-form__col-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-gray-500);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--color-gray-200);
+}
+.doc-form__col-title--secondary { margin-top: var(--space-2); }
+
+#testo_ocr { font-family: ui-monospace, "SF Mono", Consolas, monospace; font-size: 0.8125rem; }
+
+.doc-form__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+
+.doc-form__tipologia-row {
+  display: flex;
+  gap: var(--space-2);
+}
+.doc-form__tipologia-row .input { flex: 1; }
+
+.doc-form__ai-btn {
+  flex: none;
+  white-space: nowrap;
+}
+.doc-form__ai-btn svg { width: 14px; height: 14px; color: var(--color-primary-600); }
+
+.doc-form__suggerimenti {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+}
+
+.doc-form__confidenza {
+  color: var(--color-gray-400);
+  font-weight: 700;
+  margin-left: var(--space-1);
+}
+.chip.is-active .doc-form__confidenza { color: rgba(255, 255, 255, 0.75); }
+
+.dropzone {
+  position: relative;
+  border: 1.5px dashed var(--color-gray-300);
+  border-radius: var(--radius-lg);
+  background: var(--color-gray-50);
+  min-height: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color var(--dur-fast) var(--ease-standard), background var(--dur-fast) var(--ease-standard);
+}
+.dropzone:hover { border-color: var(--color-primary-500); background: var(--color-primary-50); }
+.dropzone.has-file { border-style: solid; background: var(--color-gray-900); padding: var(--space-3); }
+
+.dropzone__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-6);
+  text-align: center;
+  cursor: pointer;
+  color: var(--color-gray-500);
+}
+.dropzone__empty svg { width: 30px; height: 30px; color: var(--color-gray-400); }
+.dropzone__titolo { font-size: 0.875rem; font-weight: 600; color: var(--color-gray-700); }
+.dropzone__sottotitolo { font-size: 0.75rem; max-width: 240px; }
+
+.dropzone__preview {
+  max-height: 260px;
+  width: 100%;
+  object-fit: contain;
+  border-radius: var(--radius-md);
+}
+
+.dropzone__remove {
+  position: absolute;
+  bottom: var(--space-3);
+  right: var(--space-3);
+}
+
+// Evidenzia le informazioni che spiegano il comportamento automatico di OCR e NLP
+.doc-form__info-box {
+  background: var(--color-primary-50);
+  border: 1px solid var(--color-primary-100);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  font-size: 0.8125rem;
+  color: var(--color-primary-800);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.doc-form__info-box strong { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; }
+.doc-form__info-box p { color: var(--color-gray-600); line-height: 1.5; }
+
+.doc-form__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--color-gray-200);
+}
+
+// Su schermi ridotti le due colonne del form diventano una singola colonna
+@media (max-width: 860px) {
+  .doc-form__grid { grid-template-columns: 1fr; }
+  .doc-form__row { grid-template-columns: 1fr; }
+}

@@ -1,1 +1,92 @@
-<p>documento-lista works!</p>
+<!--
+  ============================================================================
+  src/app/components/documento-lista/documento-lista.component.html — Archivio Documenti
+  ============================================================================
+-->
+
+<div class="archive">
+  <div class="archive__toolbar card">
+    <div class="archive__filtro-testo">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="7" cy="7"
+        r="4.5" /><path d="M13.5 13.5l-3-3" /></svg>
+      <input type="search" placeholder="Filtra per nome documento…" [value]="testoFiltro()"
+             (input)="testoFiltro.set($any($event.target).value)" name="filtro" />
+    </div>
+
+    <div class="archive__vista">
+      <button type="button" class="view-btn" [class.is-active]="vista() === 'griglia'"
+              (click)="impostaVista('griglia')" aria-label="Vista a griglia">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="2" width="5"
+          height="5" /><rect x="9" y="2" width="5" height="5" /><rect x="2" y="9" width="5" height="5" /><rect
+          x="9" y="9" width="5" height="5" /></svg>
+      </button>
+      <button type="button" class="view-btn" [class.is-active]="vista() === 'tabella'"
+              (click)="impostaVista('tabella')" aria-label="Vista tabellare">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path
+          d="M2 4.5h12M2 8h12M2 11.5h12" /></svg>
+      </button>
+    </div>
+  </div>
+
+  @if (tipologieDisponibili().length > 0) {
+    <div class="archive__filtri-tipologia">
+      @for (t of tipologieDisponibili(); track t) {
+        <button type="button" class="chip" [class.is-active]="filtroTipologia() === t"
+                (click)="toggleFiltroTipologia(t)">{{ t }}</button>
+      }
+    </div>
+  }
+
+  @if (caricamento()) {
+    <div class="archive__stato">Caricamento archivio in corso…</div>
+  } @else if (erroreCaricamento()) {
+    <div class="alert alert--danger">{{ erroreCaricamento() }}</div>
+  } @else if (documentiFiltrati().length === 0) {
+    <div class="archive__vuoto">
+      <p>Nessun documento corrisponde ai criteri di filtro selezionati.</p>
+      <a routerLink="/documenti/nuovo" class="btn btn--secondary btn--sm">Inserisci il primo documento</a>
+    </div>
+  } @else if (vista() === 'griglia') {
+    <div class="results-grid">
+      @for (d of documentiFiltrati(); track d.id) {
+        <app-documento-card [documento]="d" />
+      }
+    </div>
+  } @else {
+    <!-- La tabella riutilizza la stessa descrizione dello stato delle card -->
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Documento</th>
+          <th>Tipologia</th>
+          <th>Ufficio</th>
+          <th>Data</th>
+          <th>Stato</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (d of documentiFiltrati(); track d.id) {
+          <tr [routerLink]="['/documenti', d.id]" class="table__row">
+            <td class="table__nome">{{ d.nome }}</td>
+            <td>{{ d.tipologia || '—' }}</td>
+            <td>{{ d.ufficio || '—' }}</td>
+            <td>{{ d.data_documento || '—' }}</td>
+            <td>
+              <span class="badge" [class]="descriviStato(d).classe">{{ descriviStato(d).etichetta }}</span>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+
+  @if (!caricamento() && altriDisponibili() && !testoFiltro() && !filtroTipologia()) {
+    <!-- Il caricamento incrementale è disponibile solo senza filtri attivi,
+         così l'elenco locale rimane coerente con i risultati visualizzati -->
+    <div class="archive__carica-altri">
+      <button type="button" class="btn btn--secondary" (click)="caricaAltri()" [disabled]="caricamentoAltri()">
+        {{ caricamentoAltri() ? 'Caricamento…' : 'Carica altri documenti' }}
+      </button>
+    </div>
+  }
+</div>

@@ -1,1 +1,138 @@
-<p>ricerca works!</p>
+<!--
+  ============================================================================
+  src/app/components/ricerca/ricerca.component.html — Ricerca Documenti
+  ============================================================================
+-->
+
+<div class="search-page">
+  <div class="tabs" role="tablist" aria-label="Modalità di ricerca">
+    <button type="button" role="tab" class="tabs__item" [class.is-active]="schedaAttiva() === 'testo'"
+            [attr.aria-selected]="schedaAttiva() === 'testo'" (click)="selezionaScheda('testo')">
+      <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle
+        cx="8" cy="8" r="5" /><path d="M15 15l-3.5-3.5" /></svg>
+      Ricerca testuale
+    </button>
+    <button type="button" role="tab" class="tabs__item" [class.is-active]="schedaAttiva() === 'immagine'"
+            [attr.aria-selected]="schedaAttiva() === 'immagine'" (click)="selezionaScheda('immagine')">
+      <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3.2 6A1.2 1.2 0 0 1 4.4 4.8h1.5l.9-1.3a1 1 0 0 1 .8-.5h4.8a1 1 0 0 1 .8.5l.9 1.3h1.5A1.2 1.2 0 0 1 16.8 6v7.2A1.2 1.2 0 0 1 15.6 14.4H4.4a1.2 1.2 0 0 1-1.2-1.2V6Z" />
+        <circle cx="10" cy="9.6" r="2.6" />
+      </svg>
+      Ricerca per immagine
+    </button>
+  </div>
+
+  <div class="search-page__panel card">
+    @if (schedaAttiva() === 'testo') {
+      <div class="text-search">
+        <form class="text-search__bar" (ngSubmit)="cerca()">
+          <div class="text-search__input-wrap">
+            <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle
+              cx="8" cy="8" r="5" /><path d="M15 15l-3.5-3.5" /></svg>
+            <input type="search" class="text-search__input" placeholder="Cerca per nome, oggetto, numero delibera, contenuto…"
+                   [value]="query()" (input)="query.set($any($event.target).value)" name="query" />
+          </div>
+          <button type="submit" class="btn btn--primary" [disabled]="ricercaInCorso() || !query().trim()">
+            {{ ricercaInCorso() ? 'Ricerca in corso…' : 'Cerca' }}
+          </button>
+        </form>
+
+        <div class="text-search__opzioni">
+          <div class="segmented" role="radiogroup" aria-label="Modalità di ricerca">
+            <button type="button" class="segmented__item" [class.is-active]="modalita() === 'fulltext'"
+                    (click)="impostaModalita('fulltext')">Parole chiave</button>
+            <button type="button" class="segmented__item" [class.is-active]="modalita() === 'semantica'"
+                    (click)="impostaModalita('semantica')">Semantica</button>
+            <button type="button" class="segmented__item" [class.is-active]="modalita() === 'ibrida'"
+                    (click)="impostaModalita('ibrida')">Ibrida</button>
+          </div>
+
+          @if (modalita() === 'ibrida') {
+            <label class="text-search__peso">
+              Peso semantico
+              <input type="range" min="0" max="1" step="0.1" [value]="pesoSemantico()"
+                     (input)="pesoSemantico.set($any($event.target).valueAsNumber)" name="peso" />
+              <span>{{ pesoSemantico() }}</span>
+            </label>
+          }
+        </div>
+
+        @if (erroreRicerca()) {
+          <div class="alert alert--danger" role="alert">{{ erroreRicerca() }}</div>
+        }
+
+        @if (haRicercato() && !ricercaInCorso()) {
+          <div class="text-search__risultati-header">
+            <div class="text-search__conteggio">
+              <strong>{{ risultatiFiltrati().length }}</strong> risultat{{ risultatiFiltrati().length === 1 ? 'o' : 'i' }}
+              su {{ risultati().length }}
+            </div>
+
+            <div class="text-search__vista">
+              <button type="button" class="view-btn" [class.is-active]="vista() === 'griglia'"
+                      (click)="impostaVista('griglia')" aria-label="Vista a griglia">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="2"
+                  width="5" height="5" /><rect x="9" y="2" width="5" height="5" /><rect x="2" y="9" width="5"
+                  height="5" /><rect x="9" y="9" width="5" height="5" /></svg>
+              </button>
+              <button type="button" class="view-btn" [class.is-active]="vista() === 'tabella'"
+                      (click)="impostaVista('tabella')" aria-label="Vista tabellare">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path
+                  d="M2 4.5h12M2 8h12M2 11.5h12" /></svg>
+              </button>
+            </div>
+          </div>
+
+          @if (tipologieDisponibili().length > 0) {
+            <div class="text-search__filtri">
+              @for (t of tipologieDisponibili(); track t) {
+                <button type="button" class="chip" [class.is-active]="filtroTipologia() === t"
+                        (click)="toggleFiltroTipologia(t)">{{ t }}</button>
+              }
+            </div>
+          }
+
+          @if (risultatiFiltrati().length === 0) {
+            <p class="text-search__vuoto">Nessun documento corrisponde ai criteri di ricerca indicati.</p>
+          } @else if (vista() === 'griglia') {
+            <div class="results-grid">
+              @for (r of risultatiFiltrati(); track r.documento.id) {
+                <app-documento-card [documento]="r.documento" [score]="r.score" />
+              }
+            </div>
+          } @else {
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Documento</th><th>Tipologia</th><th>Ufficio</th><th>Data</th><th>Rilevanza</th><th>Stato</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (r of risultatiFiltrati(); track r.documento.id) {
+                  <tr [routerLink]="['/documenti', r.documento.id]" class="table__row">
+                    <td class="table__nome">{{ r.documento.nome }}</td>
+                    <td>{{ r.documento.tipologia || '—' }}</td>
+                    <td>{{ r.documento.ufficio || '—' }}</td>
+                    <td>{{ r.documento.data_documento || '—' }}</td>
+                    <td>{{ (r.score * 100) | number: '1.0-0' }}%</td>
+                    <td>
+                      <span class="badge" [class]="descriviStato(r.documento).classe">{{ descriviStato(r.documento).etichetta }}</span>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          }
+        } @else if (!ricercaInCorso()) {
+          <div class="text-search__placeholder">
+            <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="17" cy="17"
+              r="11" /><path d="M32 32l-7-7" /></svg>
+            <p>Digita una parola chiave o una frase libera per iniziare la ricerca nell'archivio comunale.</p>
+          </div>
+        }
+      </div>
+    } @else {
+      <app-ricerca-immagine />
+    }
+  </div>
+</div>

@@ -1,1 +1,148 @@
-<p>documento-form works!</p>
+<!--
+  ============================================================================
+  src/app/components/documento-form/documento-form.component.html — Form Documento
+  ============================================================================
+-->
+
+@if (caricamentoIniziale()) {
+  <div class="form-skeleton" aria-live="polite">Caricamento dati documento…</div>
+} @else {
+  <form class="doc-form" [formGroup]="form" (ngSubmit)="salva()">
+    @if (erroreSalvataggio()) {
+      <div class="alert alert--danger" role="alert">{{ erroreSalvataggio() }}</div>
+    }
+    @if (esitoPositivo()) {
+      <div class="alert alert--success" role="status">{{ esitoPositivo() }}</div>
+    }
+
+    <div class="doc-form__grid">
+      <!-- Colonna sinistra: metadati -->
+      <section class="doc-form__col">
+        <h3 class="doc-form__col-title">Dati identificativi</h3>
+
+        <div class="field">
+          <label class="field__label" for="nome">Nome del documento</label>
+          <input id="nome" class="input" type="text" formControlName="nome" placeholder="Es. Delibera n. 45/2026"
+                 [class.is-invalid]="form.controls.nome.invalid && form.controls.nome.touched" />
+          @if (form.controls.nome.invalid && form.controls.nome.touched) {
+            <span class="field__error">Il nome del documento è obbligatorio.</span>
+          }
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="tipologia">
+            Tipologia <span class="optional">facoltativo</span>
+          </label>
+          <div class="doc-form__tipologia-row">
+            <input id="tipologia" class="input" type="text" formControlName="tipologia"
+                   placeholder="Es. Delibera di Giunta" />
+            <button type="button" class="btn btn--secondary btn--sm doc-form__ai-btn"
+                    (click)="richiediSuggerimentoTipologia()" [disabled]="caricamentoSuggerimenti()">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M8 2.2 9.4 5.8 13 7.2 9.4 8.6 8 12.2 6.6 8.6 3 7.2l3.6-1.4L8 2.2Z" />
+              </svg>
+              {{ caricamentoSuggerimenti() ? 'Analisi…' : 'Suggerisci con AI' }}
+            </button>
+          </div>
+          @if (suggerimentiTipologia().length > 0) {
+            <div class="doc-form__suggerimenti">
+              @for (s of suggerimentiTipologia(); track s.tipologia) {
+                <button type="button" class="chip" (click)="applicaTipologiaSuggerita(s.tipologia)">
+                  {{ s.tipologia }} <span class="doc-form__confidenza">{{ (s.confidenza * 100) | number: '1.0-0' }}%</span>
+                </button>
+              }
+            </div>
+          }
+        </div>
+
+        <div class="doc-form__row">
+          <div class="field">
+            <label class="field__label" for="data_documento">Data documento <span class="optional">facoltativo</span></label>
+            <input id="data_documento" class="input" type="date" formControlName="data_documento" />
+          </div>
+          <div class="field">
+            <label class="field__label" for="ufficio">Ufficio competente <span class="optional">facoltativo</span></label>
+            <input id="ufficio" class="input" type="text" formControlName="ufficio" placeholder="Es. Ufficio Tecnico" />
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="firmatari">Firmatari <span class="optional">facoltativo</span></label>
+          <input id="firmatari" class="input" type="text" formControlName="firmatari"
+                 placeholder="Es. Mario Rossi, Anna Bianchi" />
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="descrizione">Descrizione <span class="optional">facoltativo</span></label>
+          <textarea id="descrizione" class="textarea" formControlName="descrizione" rows="4"
+                    placeholder="Sintesi del contenuto, riferimenti normativi, note per l'archiviazione…"></textarea>
+        </div>
+
+        @if (modalitaModifica()) {
+          <h3 class="doc-form__col-title doc-form__col-title--secondary">Correzioni OCR e indicizzazione</h3>
+
+          <div class="field">
+            <label class="field__label" for="keywords">Keyword <span class="optional">generate automaticamente, correggibili</span></label>
+            <input id="keywords" class="input" type="text" formControlName="keywords"
+                   placeholder="Es. delibera, traffico, centro storico" />
+            <span class="field__hint">Parole chiave separate da virgola, estratte automaticamente dal testo OCR e mostrate nella scheda di dettaglio.</span>
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="testo_ocr">Testo estratto dall'OCR <span class="optional">correggibile</span></label>
+            <textarea id="testo_ocr" class="textarea" formControlName="testo_ocr" rows="5"
+                      placeholder="Testo riconosciuto dalla scansione del documento…"></textarea>
+            <span class="field__hint">Correggi qui eventuali errori di riconoscimento: la modifica aggiorna anche l'indicizzazione semantica del documento.</span>
+          </div>
+        }
+      </section>
+
+      <!-- Colonna destra: immagine -->
+      <section class="doc-form__col">
+        <h3 class="doc-form__col-title">Scansione / fotografia</h3>
+
+        <div class="dropzone" [class.has-file]="anteprimaImmagine()" (drop)="onDrop($event)" (dragover)="onDragOver($event)">
+          @if (anteprimaImmagine()) {
+            <img class="dropzone__preview" [src]="anteprimaImmagine()" alt="Anteprima immagine caricata" />
+            <button type="button" class="btn btn--secondary btn--sm dropzone__remove" (click)="rimuoviImmagine()">
+              Rimuovi immagine
+            </button>
+          } @else {
+            <label class="dropzone__empty" for="file-immagine">
+              <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M16 5v15" /><path d="M10 11l6-6 6 6" />
+                <path d="M6 22v3a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-3" />
+              </svg>
+              <span class="dropzone__titolo">Trascina qui l'immagine</span>
+              <span class="dropzone__sottotitolo">oppure clicca per selezionare un file — JPEG, PNG o WEBP, max 10 MB</span>
+            </label>
+          }
+          <input id="file-immagine" class="visually-hidden" type="file" accept="image/jpeg,image/png,image/webp"
+                 (change)="onFileSelezionato($event)" />
+        </div>
+        @if (erroreImmagine()) {
+          <span class="field__error">{{ erroreImmagine() }}</span>
+        }
+        @if (immagineEsistenteUrl() && !anteprimaImmagine()) {
+          <p class="field__hint">Il documento ha già un'immagine associata: caricane una nuova per sostituirla.</p>
+        }
+
+        <div class="doc-form__info-box">
+          <strong>Elaborazione automatica</strong>
+          <p>
+            Dopo il salvataggio, il testo dell'immagine viene estratto tramite OCR e usato per calcolare
+            automaticamente le keyword e l'embedding semantico del documento, rendendolo immediatamente
+            ricercabile in archivio.
+          </p>
+        </div>
+      </section>
+    </div>
+
+    <div class="doc-form__actions">
+      <button type="button" class="btn btn--ghost" (click)="annulla()">Annulla</button>
+      <button type="submit" class="btn btn--primary" [disabled]="salvataggioInCorso()">
+        {{ salvataggioInCorso() ? 'Salvataggio in corso…' : modalitaModifica() ? 'Salva modifiche' : 'Salva documento' }}
+      </button>
+    </div>
+  </form>
+}

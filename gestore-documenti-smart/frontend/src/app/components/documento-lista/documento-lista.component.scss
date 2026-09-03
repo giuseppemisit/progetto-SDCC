@@ -1,0 +1,89 @@
+// ==============================================================================
+// src/app/components/documento-lista/documento-lista.component.scss — Stili Archivio Documentale
+// ==============================================================================
+
+.archive {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.archive__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+}
+
+.archive__filtro-testo {
+  flex: 1;
+  max-width: 360px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-sm);
+  padding: 0 var(--space-3);
+  height: 38px;
+}
+.archive__filtro-testo:focus-within { border-color: var(--color-primary-500); }
+.archive__filtro-testo svg { width: 15px; height: 15px; color: var(--color-gray-400); flex: none; }
+.archive__filtro-testo input { flex: 1; border: 0; outline: none; font-size: 0.8125rem; background: transparent; }
+
+.archive__vista { display: inline-flex; border: 1px solid var(--color-gray-200); border-radius: var(--radius-sm); overflow: hidden; }
+.view-btn {
+  width: 34px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--color-white); border: 0; color: var(--color-gray-400);
+}
+.view-btn + .view-btn { border-left: 1px solid var(--color-gray-200); }
+.view-btn:hover { color: var(--color-gray-700); }
+.view-btn.is-active { background: var(--color-gray-100); color: var(--color-primary-700); }
+.view-btn svg { width: 15px; height: 15px; }
+
+.archive__filtri-tipologia { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+
+.archive__stato, .archive__vuoto p {
+  font-size: 0.8125rem;
+  color: var(--color-gray-500);
+}
+.archive__vuoto {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-8);
+  border: 1px dashed var(--color-gray-300);
+  border-radius: var(--radius-lg);
+}
+
+.alert--danger { background: var(--color-danger-bg); color: var(--color-danger); padding: var(--space-3) var(--space-4); border-radius: var(--radius-sm); font-size: 0.8125rem; font-weight: 600; }
+
+.results-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: var(--space-4);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--color-white);
+}
+.table th {
+  text-align: left; background: var(--color-gray-50); color: var(--color-gray-500);
+  font-weight: 700; text-transform: uppercase; font-size: 0.6875rem; letter-spacing: 0.04em;
+  padding: var(--space-2) var(--space-3); border-bottom: 1px solid var(--color-gray-200);
+}
+.table td { padding: var(--space-3); border-bottom: 1px solid var(--color-gray-100); color: var(--color-gray-600); }
+.table__row { cursor: pointer; transition: background var(--dur-fast) var(--ease-standard); }
+.table__row:hover { background: var(--color-primary-50); }
+.table__row:last-child td { border-bottom: none; }
+.table__nome { font-weight: 600; color: var(--color-gray-900); }
+
+.archive__carica-altri { display: flex; justify-content: center; padding-top: var(--space-2); }

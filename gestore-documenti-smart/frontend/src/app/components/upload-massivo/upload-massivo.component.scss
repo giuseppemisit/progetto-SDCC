@@ -1,0 +1,214 @@
+// ==============================================================================
+// src/app/components/upload-massivo/upload-massivo.component.scss — Stili Caricamento Massivo
+// ==============================================================================
+
+.bulk {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  max-width: 640px;
+}
+
+.bulk__intro h3 {
+  font-size: 1rem;
+  margin-bottom: var(--space-2);
+}
+.bulk__intro p {
+  font-size: 0.8125rem;
+  color: var(--color-gray-500);
+  line-height: 1.6;
+}
+.bulk__intro strong { color: var(--color-gray-700); }
+
+.dropzone--compact {
+  min-height: 180px;
+  border: 1.5px dashed var(--color-gray-300);
+  border-radius: var(--radius-lg);
+  background: var(--color-gray-50);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color var(--dur-fast) var(--ease-standard), background var(--dur-fast) var(--ease-standard);
+}
+.dropzone--compact:hover { border-color: var(--color-primary-500); background: var(--color-primary-50); }
+
+.dropzone__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-6);
+  text-align: center;
+  cursor: pointer;
+  color: var(--color-gray-500);
+}
+.dropzone__empty svg { width: 28px; height: 28px; color: var(--color-gray-400); }
+.dropzone__titolo { font-size: 0.875rem; font-weight: 600; color: var(--color-gray-700); }
+.dropzone__sottotitolo { font-size: 0.75rem; }
+
+.bulk__file {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4);
+}
+
+.bulk__file-icon {
+  flex: none;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-sm);
+  background: var(--color-primary-50);
+  color: var(--color-primary-700);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.bulk__file-icon svg { width: 18px; height: 18px; }
+
+.bulk__file-info { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.bulk__file-nome { font-size: 0.875rem; font-weight: 600; color: var(--color-gray-800); }
+.bulk__file-dim { font-size: 0.75rem; color: var(--color-gray-500); }
+
+.progress { display: flex; flex-direction: column; gap: var(--space-2); }
+.progress__track {
+  height: 8px;
+  border-radius: 4px;
+  background: var(--color-gray-200);
+  overflow: hidden;
+}
+.progress__fill {
+  height: 100%;
+  background: var(--color-primary-600);
+  transition: width var(--dur-base) var(--ease-standard);
+}
+.progress__label { font-size: 0.75rem; color: var(--color-gray-500); font-weight: 600; }
+
+.alert {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-sm);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+.alert--danger { background: var(--color-danger-bg); color: var(--color-danger); }
+
+.bulk__actions { display: flex; justify-content: flex-end; }
+
+.bulk__summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-3);
+}
+
+.summary-card {
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  background: var(--color-white);
+}
+.summary-card__valore { font-family: var(--font-serif); font-size: 1.75rem; font-weight: 600; color: var(--color-gray-900); }
+.summary-card__label { font-size: 0.75rem; color: var(--color-gray-500); font-weight: 600; }
+.summary-card--success .summary-card__valore { color: var(--color-success); }
+.summary-card--danger .summary-card__valore { color: var(--color-danger); }
+
+.bulk__errori h4 {
+  font-size: 0.8125rem;
+  margin-bottom: var(--space-2);
+  color: var(--color-gray-700);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.table th {
+  text-align: left;
+  background: var(--color-gray-50);
+  color: var(--color-gray-500);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.6875rem;
+  letter-spacing: 0.04em;
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--color-gray-200);
+}
+.table td {
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--color-gray-100);
+  color: var(--color-gray-700);
+}
+.table tr:last-child td { border-bottom: none; }
+
+
+// Riquadro con il formato dei file accettati
+.formato {
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-md);
+  background: var(--color-gray-50);
+}
+
+.formato__toggle {
+  padding: var(--space-3) var(--space-4);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-gray-700);
+  cursor: pointer;
+}
+.formato__toggle:hover { color: var(--color-primary-700); }
+
+.formato__corpo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: 0 var(--space-4) var(--space-4);
+}
+
+.formato__corpo .table { background: var(--color-white); }
+.formato__corpo td code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.75rem;
+  color: var(--color-gray-800);
+}
+
+.formato__esempio h5 {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-gray-500);
+  margin-bottom: var(--space-2);
+}
+
+.formato__codice {
+  margin: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-sm);
+  background: var(--color-white);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.75rem;
+  line-height: 1.6;
+  color: var(--color-gray-800);
+  // Le righe del CSV sono più larghe del pannello (max-width 640px):
+  // lo scroll interno evita di allargare l'intera area di inserimento
+  white-space: pre;
+  overflow-x: auto;
+}
+
+.formato__note {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  font-size: 0.75rem;
+  color: var(--color-gray-500);
+  line-height: 1.6;
+}
+.formato__note li { padding-left: var(--space-3); border-left: 2px solid var(--color-gray-200); }
+.formato__note strong { color: var(--color-gray-700); }

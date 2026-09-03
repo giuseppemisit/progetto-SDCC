@@ -1,0 +1,43 @@
+// ==============================================================================
+// src/app/components/inserimento/inserimento.component.scss — Stili Area Inserimento
+// ==============================================================================
+
+.ingestion {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  max-width: 1080px;
+}
+
+.tabs {
+  display: flex;
+  gap: var(--space-1);
+  border-bottom: 1px solid var(--color-gray-200);
+}
+
+.tabs__item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: none;
+  border: 0;
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: -1px;
+  border-bottom: 2px solid transparent;
+  color: var(--color-gray-500);
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: color var(--dur-fast) var(--ease-standard), border-color var(--dur-fast) var(--ease-standard);
+}
+.tabs__item svg { width: 16px; height: 16px; }
+.tabs__item:hover { color: var(--color-gray-800); }
+.tabs__item.is-active {
+  color: var(--color-primary-800);
+  border-bottom-color: var(--color-primary-800);
+}
+
+// Mantiene il pannello visivamente integrato con la struttura delle tab
+.ingestion__panel {
+  padding: var(--space-6);
+  border-top-left-radius: 0;
+}
